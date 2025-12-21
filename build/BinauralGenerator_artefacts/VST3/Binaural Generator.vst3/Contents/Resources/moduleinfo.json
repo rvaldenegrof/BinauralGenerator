@@ -1,0 +1,48 @@
+{
+  "Name": "Binaural Generator",
+  "Version": "1.0.0",
+  "Factory Info": {
+    "Vendor": "BinauralAudio",
+    "URL": "https://binauralaudio.com",
+    "E-Mail": "info@binauralaudio.com",
+    "Flags": {
+      "Unicode": true,
+      "Classes Discardable": false,
+      "Component Non Discardable": false,
+    },
+  },
+  "Classes": [
+    {
+      "CID": "ABCDEF019182FAEB42696E6142696E61",
+      "Category": "Audio Module Class",
+      "Name": "Binaural Generator",
+      "Vendor": "BinauralAudio",
+      "Version": "1.0.0",
+      "SDKVersion": "VST 3.8.0",
+      "Sub Categories": [
+        "Instrument",
+        "Synth",
+      ],
+      "Class Flags": 2,
+      "Cardinality": 2147483647,
+      "Snapshots": [
+      ],
+    },
+    {
+      "CID": "ABCDEF011234ABCD42696E6142696E61",
+      "Category": "Component Controller Class",
+      "Name": "Binaural Generator",
+      "Vendor": "BinauralAudio",
+      "Version": "1.0.0",
+      "SDKVersion": "VST 3.8.0",
+      "Sub Categories": [
+        "Instrument",
+        "Synth",
+      ],
+      "Class Flags": 2,
+      "Cardinality": 2147483647,
+      "Snapshots": [
+      ],
+    },
+  ],
+}

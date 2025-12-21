@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+a64927f4d6eb46cfcc1b91ad879f6b70 BinauralGenerator_artefacts/JuceLibraryCode/BinauralGenerator_AU/PkgInfo
+c7659da16abf0c66a2f4a01c869ccefb BinauralGenerator_artefacts/JuceLibraryCode/BinauralGenerator_Standalone/PkgInfo
+ecf0bbcd38fa26e4e75546dfcacaf0d9 BinauralGenerator_artefacts/JuceLibraryCode/BinauralGenerator_VST3/PkgInfo
