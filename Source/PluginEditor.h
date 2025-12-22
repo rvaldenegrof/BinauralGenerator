@@ -51,17 +51,6 @@ private:
     juce::ComboBox mp3BitrateComboBox;
     juce::Label mp3BitrateLabel;
     juce::Label exportSectionLabel;
-    
-    // Time preset buttons (two rows)
-    juce::TextButton time1MinButton;
-    juce::TextButton time2MinButton;
-    juce::TextButton time5MinButton;
-    juce::TextButton time10MinButton;
-    juce::TextButton time15MinButton;
-    juce::TextButton time30MinButton;
-    juce::TextButton time45MinButton;
-    juce::TextButton time1HourButton;
-    juce::TextButton time2HourButton;
 
     // Parameter attachments
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> baseFrequencyAttachment;
@@ -86,7 +75,6 @@ private:
     void exportButtonClicked();
     void startExport();
     void updateDurationDisplay();
-    void setDurationFromPreset (double minutes);
     juce::String formatTime (double seconds);
     void updateFormatControls();
     void updateExportButtonText();
