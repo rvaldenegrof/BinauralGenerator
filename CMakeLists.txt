@@ -41,6 +41,17 @@ target_compile_definitions(BinauralGenerator
         JUCE_VST3_CAN_REPLACE_VST2=0
         JUCE_USE_LAME_AUDIO_FORMAT=1)
 
+# Find LAME library
+find_library(LAME_LIBRARY
+    NAMES mp3lame libmp3lame
+    PATHS
+        /usr/local/lib
+        /opt/homebrew/lib
+        /usr/lib
+    PATH_SUFFIXES
+        lib
+)
+
 # Link libraries
 target_link_libraries(BinauralGenerator
     PRIVATE
@@ -50,4 +61,12 @@ target_link_libraries(BinauralGenerator
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+# Link LAME if found
+if(LAME_LIBRARY)
+    target_link_libraries(BinauralGenerator PRIVATE ${LAME_LIBRARY})
+    message(STATUS "LAME library found: ${LAME_LIBRARY}")
+else()
+    message(WARNING "LAME library not found. MP3 export may not work.")
+endif()
 

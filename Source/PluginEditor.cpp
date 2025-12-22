@@ -9,7 +9,7 @@ BinauralAudioProcessorEditor::BinauralAudioProcessorEditor (BinauralAudioProcess
     // Set editor size - calculated to fit all elements comfortably
     // Larger if standalone (for export controls)
     #if JucePlugin_Build_Standalone
-    setSize (600, 950);
+    setSize (650, 1000);
     #else
     setSize (550, 600);
     #endif
@@ -85,11 +85,11 @@ void BinauralAudioProcessorEditor::resized()
     area.removeFromTop (titleHeight); // Space for title and separator
 
     const int margin = 15;
-    const int sliderHeight = 45;
+    const int sliderHeight = 40;
     const int labelHeight = 18;
-    const int spacing = 10;
-    const int comboHeight = 28;
-    const int buttonHeight = 35;
+    const int spacing = 8;
+    const int comboHeight = 26;
+    const int buttonHeight = 32;
     
     int y = area.getY() + margin;
 
@@ -151,24 +151,6 @@ void BinauralAudioProcessorEditor::resized()
     durationDisplayLabel.setBounds (getWidth() - margin - 90, y + labelHeight + 2, 90, sliderHeight);
     y += labelHeight + sliderHeight + spacing + 2;
     
-    // Time preset buttons - Row 1 (4 buttons)
-    int timeButtonWidth = (getWidth() - 2 * margin - spacing * 3) / 4;
-    const int timeButtonHeight = 28;
-    time1MinButton.setBounds (margin, y, timeButtonWidth, timeButtonHeight);
-    time2MinButton.setBounds (margin + timeButtonWidth + spacing, y, timeButtonWidth, timeButtonHeight);
-    time5MinButton.setBounds (margin + (timeButtonWidth + spacing) * 2, y, timeButtonWidth, timeButtonHeight);
-    time10MinButton.setBounds (margin + (timeButtonWidth + spacing) * 3, y, timeButtonWidth, timeButtonHeight);
-    y += timeButtonHeight + spacing;
-    
-    // Time preset buttons - Row 2 (5 buttons)
-    timeButtonWidth = (getWidth() - 2 * margin - spacing * 4) / 5;
-    time15MinButton.setBounds (margin, y, timeButtonWidth, timeButtonHeight);
-    time30MinButton.setBounds (margin + timeButtonWidth + spacing, y, timeButtonWidth, timeButtonHeight);
-    time45MinButton.setBounds (margin + (timeButtonWidth + spacing) * 2, y, timeButtonWidth, timeButtonHeight);
-    time1HourButton.setBounds (margin + (timeButtonWidth + spacing) * 3, y, timeButtonWidth, timeButtonHeight);
-    time2HourButton.setBounds (margin + (timeButtonWidth + spacing) * 4, y, timeButtonWidth, timeButtonHeight);
-    y += timeButtonHeight + spacing;
-    
     // Format selector
     formatLabel.setBounds (margin, y, getWidth() - 2 * margin, labelHeight);
     formatComboBox.setBounds (margin, y + labelHeight + 2, getWidth() - 2 * margin, comboHeight);
@@ -183,14 +165,22 @@ void BinauralAudioProcessorEditor::resized()
     }
     
     // Export button
-    exportButton.setBounds (margin, y, getWidth() - 2 * margin, 40);
+    exportButton.setBounds (margin, y, getWidth() - 2 * margin, 38);
+    y += 38 + spacing;
     #endif
-    
-    // Verify all elements fit (jassert removed to avoid unused variable warning)
+     
+    // Verify all elements fit
     #if JucePlugin_Build_Standalone
-    jassert ((y + 40 + spacing + margin) <= getHeight());
+    if ((y + margin) > getHeight())
+    {
+        // If elements don't fit, increase window size
+        setSize (getWidth(), y + margin + 20);
+    }
     #else
-    jassert ((y + margin) <= getHeight());
+    if ((y + margin) > getHeight())
+    {
+        setSize (getWidth(), y + margin + 20);
+    }
     #endif
 }
 
@@ -287,63 +277,25 @@ void BinauralAudioProcessorEditor::setupExportControls()
     exportPresetLabel.attachToComponent (&exportPresetComboBox, false);
     exportPresetLabel.setColour (juce::Label::textColourId, juce::Colours::white);
     
-    // Duration slider
+    // Duration slider (in minutes, 0-120)
     addAndMakeVisible (durationSlider);
     durationSlider.setSliderStyle (juce::Slider::LinearHorizontal);
     durationSlider.setTextBoxStyle (juce::Slider::TextBoxRight, false, 80, 20);
-    durationSlider.setRange (1.0, 7200.0, 1.0); // 1 second to 2 hours
-    durationSlider.setValue (60.0); // Default 60 seconds
-    durationSlider.setTextValueSuffix (" sec");
+    durationSlider.setRange (0.0, 120.0, 0.1); // 0 to 120 minutes
+    durationSlider.setValue (1.0); // Default 1 minute
+    durationSlider.setTextValueSuffix (" min");
     durationSlider.onValueChange = [this] { updateDurationDisplay(); };
     
     addAndMakeVisible (durationLabel);
-    durationLabel.setText ("Duration", juce::dontSendNotification);
+    durationLabel.setText ("Duration (minutes)", juce::dontSendNotification);
     durationLabel.attachToComponent (&durationSlider, false);
     durationLabel.setColour (juce::Label::textColourId, juce::Colours::white);
     
     // Duration display label (shows MM:SS format)
     addAndMakeVisible (durationDisplayLabel);
-    durationDisplayLabel.setText (formatTime (60.0), juce::dontSendNotification);
+    durationDisplayLabel.setText (formatTime (1.0 * 60.0), juce::dontSendNotification);
     durationDisplayLabel.setColour (juce::Label::textColourId, juce::Colours::lightblue);
     durationDisplayLabel.setJustificationType (juce::Justification::centred);
-    
-    // Time preset buttons - Row 1
-    addAndMakeVisible (time1MinButton);
-    time1MinButton.setButtonText ("1 min");
-    time1MinButton.onClick = [this] { setDurationFromPreset (1.0); };
-    
-    addAndMakeVisible (time2MinButton);
-    time2MinButton.setButtonText ("2 min");
-    time2MinButton.onClick = [this] { setDurationFromPreset (2.0); };
-    
-    addAndMakeVisible (time5MinButton);
-    time5MinButton.setButtonText ("5 min");
-    time5MinButton.onClick = [this] { setDurationFromPreset (5.0); };
-    
-    addAndMakeVisible (time10MinButton);
-    time10MinButton.setButtonText ("10 min");
-    time10MinButton.onClick = [this] { setDurationFromPreset (10.0); };
-    
-    // Time preset buttons - Row 2
-    addAndMakeVisible (time15MinButton);
-    time15MinButton.setButtonText ("15 min");
-    time15MinButton.onClick = [this] { setDurationFromPreset (15.0); };
-    
-    addAndMakeVisible (time30MinButton);
-    time30MinButton.setButtonText ("30 min");
-    time30MinButton.onClick = [this] { setDurationFromPreset (30.0); };
-    
-    addAndMakeVisible (time45MinButton);
-    time45MinButton.setButtonText ("45 min");
-    time45MinButton.onClick = [this] { setDurationFromPreset (45.0); };
-    
-    addAndMakeVisible (time1HourButton);
-    time1HourButton.setButtonText ("1 hour");
-    time1HourButton.onClick = [this] { setDurationFromPreset (60.0); };
-    
-    addAndMakeVisible (time2HourButton);
-    time2HourButton.setButtonText ("2 hours");
-    time2HourButton.onClick = [this] { setDurationFromPreset (120.0); };
     
     // Format selector
     addAndMakeVisible (formatComboBox);
@@ -384,14 +336,9 @@ void BinauralAudioProcessorEditor::setupExportControls()
 
 void BinauralAudioProcessorEditor::updateDurationDisplay()
 {
-    double seconds = durationSlider.getValue();
+    double minutes = durationSlider.getValue();
+    double seconds = minutes * 60.0;
     durationDisplayLabel.setText (formatTime (seconds), juce::dontSendNotification);
-}
-
-void BinauralAudioProcessorEditor::setDurationFromPreset (double minutes)
-{
-    durationSlider.setValue (minutes * 60.0);
-    updateDurationDisplay();
 }
 
 juce::String BinauralAudioProcessorEditor::formatTime (double seconds)
@@ -434,7 +381,8 @@ void BinauralAudioProcessorEditor::startExport()
         return;
     
     int presetIndex = selectedPresetId - 1; // ComboBox IDs start at 1
-    double durationSeconds = durationSlider.getValue();
+    double durationMinutes = durationSlider.getValue();
+    double durationSeconds = durationMinutes * 60.0;
     
         // Determine format
         bool formatIsMP3 = formatComboBox.getSelectedId() == 2;
@@ -475,9 +423,13 @@ void BinauralAudioProcessorEditor::startExport()
                 file = file.withFileExtension ("wav");
         
         // Show progress dialog
+        double durationMinutes = durationSeconds / 60.0;
+        juce::String durationText = durationMinutes >= 1.0 
+            ? juce::String (durationMinutes, 1) + " minutes"
+            : juce::String (durationSeconds, 0) + " seconds";
         juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::InfoIcon,
                                                 "Exporting Audio",
-                                                "Exporting " + juce::String (durationSeconds) + " seconds...\n\n"
+                                                "Exporting " + durationText + "...\n\n"
                                                 "This may take a moment.");
         
         // Export audio (this will block, but that's okay for now)
