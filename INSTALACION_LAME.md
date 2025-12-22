@@ -118,3 +118,5 @@ Si no puedes instalar LAME o prefieres máxima calidad:
 - Los archivos WAV son más grandes pero sin pérdida de calidad
 - Puedes convertir WAV a MP3 después usando otras herramientas
 
+
+

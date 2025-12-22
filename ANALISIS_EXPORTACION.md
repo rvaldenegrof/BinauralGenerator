@@ -83,3 +83,5 @@
 - Mejor manejo de errores
 - Opción de sample rate (44.1, 48, 96 kHz)
 
+
+
