@@ -279,11 +279,17 @@ bool BinauralAudioProcessor::exportAudio (const juce::File& file, int presetInde
                                            double durationSeconds, ExportFormat format,
                                            int mp3Bitrate, double sampleRate)
 {
-    if (presetIndex < 0 || presetIndex >= BinauralPresets::NUM_PRESETS)
-        return false;
-    
-    // Apply preset
-    applyPreset (presetIndex);
+    // If presetIndex is -1, use current parameters (Custom mode)
+    // Otherwise, validate and apply the preset
+    if (presetIndex >= 0)
+    {
+        if (presetIndex >= BinauralPresets::NUM_PRESETS)
+            return false;
+        
+        // Apply preset
+        applyPreset (presetIndex);
+    }
+    // If presetIndex is -1, skip preset application and use current parameters
     
     // Prepare processor for offline rendering
     const int blockSize = 512;

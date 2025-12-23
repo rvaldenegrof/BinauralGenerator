@@ -41,8 +41,6 @@ private:
     
     // Export controls (only visible in standalone)
     juce::TextButton exportButton;
-    juce::ComboBox exportPresetComboBox;
-    juce::Label exportPresetLabel;
     juce::Slider durationSlider;
     juce::Label durationLabel;
     juce::Label durationDisplayLabel; // Shows time in MM:SS format

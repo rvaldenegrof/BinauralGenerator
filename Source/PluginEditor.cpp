@@ -140,11 +140,6 @@ void BinauralAudioProcessorEditor::resized()
     exportSectionLabel.setBounds (margin, y, getWidth() - 2 * margin, 20);
     y += 25;
     
-    // Export preset selector
-    exportPresetLabel.setBounds (margin, y, getWidth() - 2 * margin, labelHeight);
-    exportPresetComboBox.setBounds (margin, y + labelHeight + 2, getWidth() - 2 * margin, comboHeight);
-    y += labelHeight + comboHeight + spacing + 2;
-    
     // Duration slider
     durationLabel.setBounds (margin, y, getWidth() - 2 * margin, labelHeight);
     durationSlider.setBounds (margin, y + labelHeight + 2, getWidth() - 2 * margin - 100, sliderHeight);
@@ -263,20 +258,6 @@ void BinauralAudioProcessorEditor::setupExportControls()
     exportSectionLabel.setColour (juce::Label::textColourId, juce::Colours::lightblue);
     exportSectionLabel.setJustificationType (juce::Justification::centredLeft);
     
-    // Export preset combo box
-    addAndMakeVisible (exportPresetComboBox);
-    for (int i = 0; i < BinauralPresets::NUM_PRESETS; ++i)
-    {
-        const auto& preset = BinauralPresets::ALL_PRESETS[i];
-        exportPresetComboBox.addItem (preset.name + " - " + preset.description, i + 1);
-    }
-    exportPresetComboBox.setSelectedId (1); // Default to first preset
-    
-    addAndMakeVisible (exportPresetLabel);
-    exportPresetLabel.setText ("Export Preset", juce::dontSendNotification);
-    exportPresetLabel.attachToComponent (&exportPresetComboBox, false);
-    exportPresetLabel.setColour (juce::Label::textColourId, juce::Colours::white);
-    
     // Duration slider (in minutes, 0-120)
     addAndMakeVisible (durationSlider);
     durationSlider.setSliderStyle (juce::Slider::LinearHorizontal);
@@ -376,11 +357,23 @@ void BinauralAudioProcessorEditor::exportButtonClicked()
 
 void BinauralAudioProcessorEditor::startExport()
 {
-    int selectedPresetId = exportPresetComboBox.getSelectedId();
-    if (selectedPresetId < 1 || selectedPresetId > BinauralPresets::NUM_PRESETS)
-        return;
+    // Get preset from main preset selector
+    int selectedPresetId = presetComboBox.getSelectedId();
     
-    int presetIndex = selectedPresetId - 1; // ComboBox IDs start at 1
+    // If Custom is selected, we'll export with current parameters
+    // Otherwise, use the selected preset
+    int presetIndex = -1; // -1 means use current parameters (Custom)
+    
+    if (selectedPresetId > 1) // Not Custom (Custom is ID 1)
+    {
+        // Convert ComboBox ID to preset index (ID 2 = preset 0, ID 3 = preset 1, etc.)
+        presetIndex = selectedPresetId - 2;
+        
+        // Validate preset index
+        if (presetIndex < 0 || presetIndex >= BinauralPresets::NUM_PRESETS)
+            return;
+    }
+    
     double durationMinutes = durationSlider.getValue();
     double durationSeconds = durationMinutes * 60.0;
     
