@@ -67,7 +67,8 @@ public:
     enum class ExportFormat { WAV, MP3 };
     bool exportAudio (const juce::File& file, int presetIndex, double durationSeconds, 
                       ExportFormat format = ExportFormat::WAV, int mp3Bitrate = 192, 
-                      double sampleRate = 44100.0);
+                      double sampleRate = 44100.0,
+                      std::function<void(double)> progressCallback = nullptr);
     
 private:
     // Helper for MP3 quality index
