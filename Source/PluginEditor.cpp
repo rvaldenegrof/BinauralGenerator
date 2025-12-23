@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "Presets.h"
+#include <functional>
 
 //==============================================================================
 BinauralAudioProcessorEditor::BinauralAudioProcessorEditor (BinauralAudioProcessor& p)
@@ -54,6 +55,20 @@ BinauralAudioProcessorEditor::BinauralAudioProcessorEditor (BinauralAudioProcess
 
 BinauralAudioProcessorEditor::~BinauralAudioProcessorEditor()
 {
+    // Stop export thread if running
+    if (exportThread && exportThread->isThreadRunning())
+    {
+        exportThread->stopThread (5000); // Wait up to 5 seconds
+    }
+    exportThread.reset();
+    
+    // Close progress window if open
+    if (progressWindow)
+    {
+        progressWindow->exitModalState (0);
+        progressWindow.reset();
+    }
+    progressBar.reset();
 }
 
 //==============================================================================
@@ -415,51 +430,91 @@ void BinauralAudioProcessorEditor::startExport()
             else if (! fileIsMP3 && ! file.hasFileExtension ("wav"))
                 file = file.withFileExtension ("wav");
         
-        // Show progress dialog
-        double durationMinutes = durationSeconds / 60.0;
-        juce::String durationText = durationMinutes >= 1.0 
-            ? juce::String (durationMinutes, 1) + " minutes"
-            : juce::String (durationSeconds, 0) + " seconds";
-        juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::InfoIcon,
-                                                "Exporting Audio",
-                                                "Exporting " + durationText + "...\n\n"
-                                                "This may take a moment.");
+        // Create and show progress dialog
+        progressWindow = std::make_unique<juce::AlertWindow> ("Exporting Audio",
+                                                               "Please wait...",
+                                                               juce::MessageBoxIconType::NoIcon);
+        progressWindow->setMessage ("Exporting audio file...");
+        progressWindow->addButton ("Cancel", 0);
+        progressWindow->setEscapeKeyCancels (true);
         
-        // Export audio (this will block, but that's okay for now)
-        bool success = audioProcessor.exportAudio (file, presetIndex, durationSeconds, format, mp3Bitrate);
+        currentProgress = 0.0;
+        progressBar = std::make_unique<juce::ProgressBar> (currentProgress);
+        progressBar->setPercentageDisplay (true);
+        progressWindow->addCustomComponent (progressBar.get());
         
-        if (success)
-        {
-            juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::InfoIcon,
-                                                    "Export Complete",
-                                                    "Audio exported successfully to:\n" + file.getFullPathName());
-        }
-        else
-        {
-            juce::String errorMessage = "Failed to export audio.";
-            if (format == BinauralAudioProcessor::ExportFormat::MP3)
+        // Show progress window
+        progressWindow->enterModalState (true, nullptr, true);
+        
+        // Start export in background thread
+        exportThread = std::make_unique<ExportThread> (
+            audioProcessor,
+            file,
+            presetIndex,
+            durationSeconds,
+            format,
+            mp3Bitrate,
+            [this] (double progress)
             {
-                errorMessage += "\n\nMP3 export requires LAME encoder to be installed.";
-                errorMessage += "\n\nPlease install LAME:";
-                #if JUCE_MAC
-                errorMessage += "\n  brew install lame";
-                #elif JUCE_LINUX
-                errorMessage += "\n  sudo apt-get install lame";
-                #elif JUCE_WINDOWS
-                errorMessage += "\n  Download from: https://lame.sourceforge.io/";
-                #endif
-            }
-            else
+                // Update progress on message thread
+                juce::MessageManager::callAsync ([this, progress]()
+                {
+                    currentProgress = progress;
+                    // ProgressBar automatically updates when currentProgress changes
+                });
+            },
+            [this, file, format] (bool success)
             {
-                errorMessage += "\nPlease check file permissions.";
+                // Handle completion on message thread
+                juce::MessageManager::callAsync ([this, file, format, success]()
+                {
+                    // Close progress window
+                    if (progressWindow)
+                    {
+                        progressWindow->exitModalState (0);
+                        progressWindow.reset();
+                        progressBar.reset();
+                    }
+                    
+                    exportThread.reset();
+                    
+                    if (success)
+                    {
+                        juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::InfoIcon,
+                                                                "Export Complete",
+                                                                "Audio exported successfully to:\n" + file.getFullPathName());
+                    }
+                    else
+                    {
+                        juce::String errorMessage = "Failed to export audio.";
+                        if (format == BinauralAudioProcessor::ExportFormat::MP3)
+                        {
+                            errorMessage += "\n\nMP3 export requires LAME encoder to be installed.";
+                            errorMessage += "\n\nPlease install LAME:";
+                            #if JUCE_MAC
+                            errorMessage += "\n  brew install lame";
+                            #elif JUCE_LINUX
+                            errorMessage += "\n  sudo apt-get install lame";
+                            #elif JUCE_WINDOWS
+                            errorMessage += "\n  Download from: https://lame.sourceforge.io/";
+                            #endif
+                        }
+                        else
+                        {
+                            errorMessage += "\nPlease check file permissions.";
+                        }
+                        
+                        juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::WarningIcon,
+                                                                "Export Failed",
+                                                                errorMessage);
+                    }
+                    
+                    fileChooser.reset();
+                });
             }
-            
-            juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::WarningIcon,
-                                                    "Export Failed",
-                                                    errorMessage);
-        }
+        );
         
-        fileChooser.reset();
+        exportThread->startThread();
     });
 }
 

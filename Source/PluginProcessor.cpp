@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <functional>
 #include "Presets.h"
 #include <juce_audio_formats/juce_audio_formats.h>
 
@@ -277,7 +278,8 @@ void BinauralAudioProcessor::applyPreset (int presetIndex)
 //==============================================================================
 bool BinauralAudioProcessor::exportAudio (const juce::File& file, int presetIndex, 
                                            double durationSeconds, ExportFormat format,
-                                           int mp3Bitrate, double sampleRate)
+                                           int mp3Bitrate, double sampleRate,
+                                           std::function<void(double)> progressCallback)
 {
     // If presetIndex is -1, use current parameters (Custom mode)
     // Otherwise, validate and apply the preset
@@ -410,6 +412,13 @@ bool BinauralAudioProcessor::exportAudio (const juce::File& file, int presetInde
         }
         
         samplesRendered += samplesToRender;
+        
+        // Update progress
+        if (progressCallback && totalSamples > 0)
+        {
+            double progress = static_cast<double> (samplesRendered) / static_cast<double> (totalSamples);
+            progressCallback (progress);
+        }
     }
     
     writer.reset();
