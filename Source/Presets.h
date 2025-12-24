@@ -116,6 +116,14 @@ namespace BinauralPresets
         "Conexión superior, unidad, despertar a un estado perfecto"
     };
 
+    // Schumann Resonance
+    const Preset SCHUMANN_RESONANCE = {
+        "Schumann Resonance",
+        7.83f,
+        0.5f,
+        "Resonancia Schumann: Fundamental 7.83 Hz. Armónicos: 14.07, 20.25, 26.41, 32.45 Hz"
+    };
+
     // Array of all presets
     const Preset ALL_PRESETS[] = {
         DELTA,
@@ -131,9 +139,10 @@ namespace BinauralPresets
         SOLFEGGIO_639,
         SOLFEGGIO_741,
         SOLFEGGIO_852,
-        SOLFEGGIO_963
+        SOLFEGGIO_963,
+        SCHUMANN_RESONANCE
     };
 
-    const int NUM_PRESETS = 14;
+    const int NUM_PRESETS = 15;
 }
 
