@@ -893,3 +893,6 @@ La arquitectura del Binaural Generator sigue el patrón estándar de plugins JUC
 
 El uso de `AudioProcessorValueTreeState` garantiza sincronización thread-safe entre UI y procesador, mientras que el sistema de exportación permite renderizado offline sin bloquear la UI o el procesamiento en tiempo real.
 
+
+
+
